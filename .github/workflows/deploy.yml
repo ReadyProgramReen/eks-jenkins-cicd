@@ -1,0 +1,54 @@
+name: Build and Push to ECR
+
+on:
+  push:
+    branches:
+      - gitops
+    paths:
+      - 'app/**'
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: 517169952856.dkr.ecr.us-east-1.amazonaws.com/tc2-flask-eks-app
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image
+        id: build-image
+        working-directory: app
+        run: |
+          IMAGE_TAG=${{ github.sha }}
+          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REPOSITORY:$IMAGE_TAG
+          echo "image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Update Helm chart with new image tag
+        run: |
+          sed -i "s|tag: .*|tag: ${{ steps.build-image.outputs.image_tag }}|" helm-chart/values.yaml
+
+      - name: Commit and push updated values.yaml
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add helm-chart/values.yaml
+          git commit -m "Update image tag to ${{ steps.build-image.outputs.image_tag }} [skip ci]"
+          git push
