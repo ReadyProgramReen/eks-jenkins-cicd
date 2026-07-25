@@ -49,6 +49,16 @@ resource "aws_security_group" "jenkins" {
   }
 }
 
+resource "aws_security_group_rule" "eks_from_jenkins" {
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  security_group_id        = aws_eks_cluster.main.vpc_config[0].cluster_security_group_id
+  source_security_group_id = aws_security_group.jenkins.id
+  description               = "Allow Jenkins to reach EKS API"
+}
+
 # ---------- IAM Role for Jenkins EC2 ----------
 resource "aws_iam_role" "jenkins" {
   name = "${var.project_name}-jenkins-role"
@@ -84,6 +94,36 @@ resource "aws_iam_role_policy_attachment" "jenkins_eks" {
 resource "aws_iam_instance_profile" "jenkins" {
   name = "${var.project_name}-jenkins-instance-profile"
   role = aws_iam_role.jenkins.name
+}
+resource "aws_iam_role_policy" "jenkins_eks_describe" {
+  name = "${var.project_name}-jenkins-eks-describe"
+  role = aws_iam_role.jenkins.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["eks:DescribeCluster", "eks:ListClusters"]
+        Resource = aws_eks_cluster.main.arn
+      }
+    ]
+  })
+}
+
+resource "aws_eks_access_entry" "jenkins" {
+  cluster_name  = aws_eks_cluster.main.name
+  principal_arn = aws_iam_role.jenkins.arn
+}
+
+resource "aws_eks_access_policy_association" "jenkins" {
+  cluster_name  = aws_eks_cluster.main.name
+  principal_arn = aws_iam_role.jenkins.arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
+
+  access_scope {
+    type = "cluster"
+  }
 }
 # ---------- Latest Ubuntu AMI ----------
 data "aws_ami" "ubuntu" {
