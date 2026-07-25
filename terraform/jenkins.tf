@@ -29,11 +29,11 @@ resource "aws_security_group" "jenkins" {
   }
 
   ingress {
-    description = "Jenkins web UI"
+    description = "Jenkins web UI and GitHub webhook"
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
-    cidr_blocks = ["${var.my_ip}/32"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {

@@ -46,7 +46,7 @@ def hello():
     </head>
     <body>
         <div class="card">
-            <div class="emoji">👋🥳🤸🏾‍♂️</div>
+            <div class="emoji">👋🥳🤸🏾‍♂️🤸🏾‍♂️</div>
             <h1>Hello, World!</h1>
             <p>GUID: {request_id}</p>
         </div>
