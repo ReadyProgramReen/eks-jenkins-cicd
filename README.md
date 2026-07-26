@@ -1,4 +1,4 @@
-# Tech Challenge 2 — Dockerized Flask App on AWS EKS with Jenkins & GitOps CI/CD
+# Dockerized Flask App on AWS EKS with Jenkins & GitOps CI/CD
 
 > ⚠️ **Project Status:** The AWS infrastructure for this project has been intentionally torn down (`terraform destroy`) after completion to avoid ongoing cloud costs. The live application URL is no longer active. Anyone forking or cloning this repo can stand up the full stack themselves by following the setup steps below.
 
