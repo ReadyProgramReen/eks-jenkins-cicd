@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: 517169952856.dkr.ecr.us-east-1.amazonaws.com/tc2-flask-eks-app
-  tag: latest
+  tag: 5e8994a7c5f4687facf69a13f3cbabd44aefca07
   pullPolicy: Always
 
 service:
